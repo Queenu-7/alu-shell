@@ -1,2 +1,2 @@
 #!/bin/bash
-echo -n '\*\\\'\''"Best School"\'\''\\*$\?*****:)12345' 
+echo "Best School" > $'\\*\\\\\\\'"Best School"\\\'\\\\*$\\?*****:)' 
