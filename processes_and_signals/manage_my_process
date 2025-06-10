@@ -1,5 +1,7 @@
 #!/bin/bash
 
+[ "$BASH" != "/bin/bash" ] && exec /bin/bash "$0" "$@"
+
 while true
 do
     echo "I am alive!" >> /tmp/my_process
