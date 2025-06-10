@@ -1,31 +1,47 @@
 #!/usr/bin/env bash
 #11_manage_my_process script
 
-start () {
-    ./manage_my_process &
-    echo $! > /var/run/my_process.pid
-    echo "manage_my_process started"
-}
+PID_FILE="/var/run/my_process.pid"
+DAEMON_NAME="manage_my_process" # Name of the daemon script file
 
-stop () {
-    pkill -f "./manage_my_process"
-    rm /var/run/my_process.pid
-    echo "manage_my_process stopped"
-}
-
-restart () {
-    pkill -f "./manage_my_process"
-    rm /var/run/my_process.pid
-    ./manage_my_process &
-    echo $! >> /var/run/my_process.pid
-    echo "manage_my_process restarted"
-}
 case "$1" in
-   start) start ;;
-   stop)  stop;;
-   restart) restart;;
-   *) echo "Usage: manage_my_process {start|stop|r\
-estart}"
-
-      ;;
+    start)
+        # Explicitly run the daemon script with /bin/bash
+        # This helps ensure the process name appears as /bin/bash
+        nohup /bin/bash "$DAEMON_NAME" > /dev/null 2>&1 &
+        # Store the PID of the background process
+        echo $! > "$PID_FILE"
+        echo "manage_my_process started"
+        ;;
+    stop)
+        # Check if the PID file exists
+        if [ -f "$PID_FILE" ]; then
+            # Read the PID from the file
+            PID=$(cat "$PID_FILE")
+            # Kill the process
+            kill "$PID" > /dev/null 2>&1
+            # Delete the PID file
+            rm "$PID_FILE"
+        fi
+        echo "manage_my_process stopped"
+        ;;
+    restart)
+        # Stop the process if it's running
+        if [ -f "$PID_FILE" ]; then
+            PID=$(cat "$PID_FILE")
+            kill "$PID" > /dev/null 2>&1
+            rm "$PID_FILE"
+        fi
+        # Start the process again, explicitly with /bin/bash
+        nohup /bin/bash "$DAEMON_NAME" > /dev/null 2>&1 &
+        # Store the new PID
+        echo $! > "$PID_FILE"
+        echo "manage_my_process restarted"
+        ;;
+    *)
+        # Display usage message for invalid arguments
+        echo "Usage: manage_my_process {start|stop|restart}"
+        exit 1
+        ;;
 esac
+
